@@ -17,6 +17,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 from flask import Flask
 from numpy import random
+from scipy.signal import square, sawtooth, triang
 
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 
@@ -56,6 +57,20 @@ app.layout = html.Div(
                         {"label": "Trend", "value": "trend"},
                     ],
                     value=["sine"],
+                    style={"margin-bottom": "20px"},
+                ),
+                dcc.Markdown(
+                    """
+        **Choose type of signal**
+        """
+                ),
+                dcc.RadioItems(
+                    id="signal_type",
+                    options=[
+                        {"label": "Sine", "value": "sine"},
+                        {"label": "Triangle", "value": "tri"},
+                    ],
+                    value="sine",
                     style={"margin-bottom": "20px"},
                 ),
                 dcc.Markdown(
@@ -187,15 +202,19 @@ def moving_avg(x, w):
     Input("signal_components", "value"),
     Input("smooth_checkbox", "value"),
     Input("trend_angle", "value"),
+    Input("signal_type","value"),
 )
 def update_graph(
-    ncycles, noiselevel, smoothwin, signal_components, smooth_checkbox, trend_angle
+    ncycles, noiselevel, smoothwin, signal_components, smooth_checkbox, trend_angle, signal_type
 ):
     # make a noisy sine wave on a linear trend
     # build the X-axis first, then the three time series:
     xpoints = np.arange(0, ncycles + 0.05, 0.05)
     N = len(xpoints)  # this may not be the most sophisticated approach
-    ypoints = np.sin(xpoints * 2 * np.pi)
+    if "sine" in signal_type:
+        ypoints = np.sin(xpoints * 2 * np.pi)
+    if "tri" in signal_type:
+        ypoints=triang(N)
     randpoints = 2 * noiselevel * (random.rand(N) - 0.5) #the noise level corresponds to the amplitude
     slope = np.tan(trend_angle * (np.pi / 180))
     trendpoints = slope * xpoints 
