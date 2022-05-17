@@ -214,7 +214,7 @@ def update_graph(
     if "sine" in signal_type:
         ypoints = np.sin(xpoints * 2 * np.pi)
     if "tri" in signal_type:
-        ypoints=triang(N)
+        ypoints=sawtooth(xpoints*2*np.pi,0.5)
     randpoints = 2 * noiselevel * (random.rand(N) - 0.5) #the noise level corresponds to the amplitude
     slope = np.tan(trend_angle * (np.pi / 180))
     trendpoints = slope * xpoints 
