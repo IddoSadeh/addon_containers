@@ -36,8 +36,9 @@ external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 
 server = Flask(__name__)
 app = dash.Dash(__name__,server=server,
-                requests_pathname_prefix='/ocgy/',
+
                 external_stylesheets=external_stylesheets)
+#requests_pathname_prefix='/ocgy/', go rid of this input and after 2 hours of debugging i can finally run code. not trully sure what happened
 
 app.layout = html.Div(
     [

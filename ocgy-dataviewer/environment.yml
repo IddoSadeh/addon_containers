@@ -4,6 +4,7 @@ channels:
   - conda-forge
 dependencies:
   - dash
+  - dash-renderer
   - python = 3.8
   - gunicorn
   - flask
