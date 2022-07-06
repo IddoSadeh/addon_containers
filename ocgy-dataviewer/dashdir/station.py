@@ -18,7 +18,7 @@ symbols = [
     "diamond-open",
     "cross-open",
     "x-open",
-    "triangle-open",
+    "triangle-up-open",
     "pentagon",
     "hexagram",
     "star",
