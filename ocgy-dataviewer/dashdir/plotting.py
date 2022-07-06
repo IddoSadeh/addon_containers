@@ -260,6 +260,7 @@ def update_profiles(hov_station, click_stations, fig, y_range):
                     y=click_yvals_temp,
                     marker_color=click_stations[i]["colour"],
                     marker_symbol=click_stations[i]["symbol"],
+                    marker_size = 8,
 
                 )
                 fig.data[7 + i * 6].update(
@@ -267,30 +268,35 @@ def update_profiles(hov_station, click_stations, fig, y_range):
                     y=click_yvals_sal,
                     marker_color=click_stations[i]["colour"],
                     marker_symbol=click_stations[i]["symbol"],
+                    marker_size=8,
                 )
                 fig.data[8 + i * 6].update(
                     x=click_xvals_dens,
                     y=click_yvals_dens,
                     marker_color=click_stations[i]["colour"],
                     marker_symbol=click_stations[i]["symbol"],
+                    marker_size=8,
                 )
                 fig.data[9 + i * 6].update(
                     x=click_xvals_nit,
                     y=click_yvals_nit,
                     marker_color=click_stations[i]["colour"],
                     marker_symbol=click_stations[i]["symbol"],
+                    marker_size=8,
                 )
                 fig.data[10 + i * 6].update(
                     x=click_xvals_iron,
                     y=click_yvals_iron,
                     marker_color=click_stations[i]["colour"],
                     marker_symbol=click_stations[i]["symbol"],
+                    marker_size=8,
                 )
                 fig.data[11 + i * 6].update(
                     x=click_xvals_ratio,
                     y=click_yvals_ratio,
                     marker_color=click_stations[i]["colour"],
                     marker_symbol=click_stations[i]["symbol"],
+                    marker_size=8,
                 )
 
     # display cruise info
