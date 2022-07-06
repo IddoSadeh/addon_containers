@@ -12,12 +12,13 @@ colours = [
     "darkgreen",
 ]
 
+#for more symbols and styling: https://plotly.com/python/marker-style/#:~:text=5%205.5%206-,Custom%20Marker%20Symbols,hash%20%2C%20y%20%2C%20and%20line%20.
 symbols = [
-    "square",
-    "diamond",
-    "cross",
-    "x",
-    "triangle",
+    "square-dot",
+    "diamond-dot",
+    "cross-dot",
+    "x-dot",
+    "triangle-dot",
     "pentagon",
     "hexagram",
     "star",
