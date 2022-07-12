@@ -95,4 +95,6 @@ def get_click_stations(click_data, click_stations):
                 ).__dict__
             )
 
+
+
     return click_stations

@@ -12,7 +12,7 @@ config = {
     # more edits options: https://dash.plotly.com/dash-core-components/graph
     'edits': {
         'annotationPosition': True,
-        'annotationText': True,
+        'annotationText': False,
         'shapePosition': True
     },
     "modeBarButtonsToAdd": [
@@ -70,41 +70,94 @@ def on_new_annotation(relayout_data):
     Output("fig-image", "figure"),
     Input('submit-val', 'n_clicks'),
     State('text-input', 'value'),
-    Input('fig-image', 'selectedData')
 
 )
-def text_entry(n_clicks, value, clickData):
+def text_entry(n_clicks, value):
     if n_clicks != 0:
         fig.add_annotation(
+            text=value,
             showarrow=False,
             font=dict(
                 family="Courier New, monospace",
                 size=16,
-                color="Purple"
+                color="Purple",
+
+
             ),
             captureevents=True,
+            x=2,
+            y=2,
         )
-
-        n_clicks = 0
-        value = ""
-    print(fig)
-    print(clickData)
-
+    # if annotation_data is not None:
+    #     x = []
+    #     y = []
+    #     text = []
+    #     for i in annotation_data:
+    #         x.append(i['x'])
+    #         y.append(i['y'])
+    #         text.append(i['text'])
+    #     fig.add_trace(px.scatter(x=x, y=y, text=text))
+    #     annotation_data = []
+    #
+    #     n_clicks = 0
+    #     value = ""
+    # # print(fig)
     return fig
 
 
+@app.callback(
+    Output('annotation_storage', 'data'),
+    Input('save_annotation', 'n_clicks'),
+    State('fig-image', 'relayoutData'),
+    Input('annotation_storage', 'data'),
+
+)
+def save_data(n_clicks, relayout_data, annotations):
+    if (annotations is None) | (annotations == {}):
+        annotations = []
+
+    if n_clicks != 0 and relayout_data:
+        n_clicks = 0
+
+
+        print("2" + str(fig.layout.annotations))
+        print(len(fig.layout.annotations))
+        i=len(fig.layout.annotations)-1
+        print("3" + str(relayout_data))
+        annotations.append(Annotation(relayout_data[f'annotations[{i}].x'], relayout_data[f'annotations[{i}].y'],
+                                      str(fig.layout.annotations[i]['text'])).__dict__)
+        print(*annotations)
+        fig.update_annotations(Annotation(relayout_data[f'annotations[{i}].x'], relayout_data[f'annotations[{i}].y'],
+                                          str(fig.layout.annotations[i]['text'])).__dict__)
+        return annotations
+
+
+class Annotation:
+    def __init__(self, x, y, text):
+        self.x = x
+        self.y = y
+        self.text = text
+
+#
 # @app.callback(
-#     Output("clicked", "clickData"),
-#     Input('save_annotation', 'n_clicks'),
-#     Input('fig-image', 'selectedData')
+#     Output("fig-image", "figure"),
+#     Input("fig-image", "figure"),
+#     Input('annotation_storage', 'data'),
 #
 # )
-# def text_entry(n_clicks, selectedData):
-#     if n_clicks != 0:
-#         print(fig)
-#         print(selectedData)
-#
-#     return selectedData
+# def update_pic(pic, data):
+#     if data:
+#         fig = pic
+#         x = []
+#         y = []
+#         text = []
+#         for i in data:
+#             x.append(i['x'])
+#             y.append(i['y'])
+#             text.append(i['text'])
+#         fig.add_trace(px.Scatter(x=x, y=y, text=text))
+#         data = []
+#         return fig
 #
 
 if __name__ == "__main__":
