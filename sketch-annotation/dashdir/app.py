@@ -6,7 +6,8 @@ from dash import Dash, dcc, html, Input, Output, State
 from skimage import data
 import json
 
-img = "https://images.unsplash.com/photo-1453728013993-6d66e9c9123a?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8Zm9jdXN8ZW58MHx8MHx8&w=1000&q=80"
+img = "https://images.unsplash.com/photo-1453728013993-6d66e9c9123a?ixlib=rb-1.2.1&ixid" \
+      "=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8Zm9jdXN8ZW58MHx8MHx8&w=1000&q=80 "
 fig = go.Figure()
 
 img_width = 1600
@@ -59,13 +60,14 @@ fig.update_layout(
     margin={"l": 0, "r": 0, "t": 0, "b": 0},
 )
 
+# https://community.plotly.com/t/shapes-and-annotations-become-editable-after-using-config-key/18585
 config = {
-    'editable': True,
-    # more edits options: https://dash.plotly.com/dash-core-components/graph
+    # 'editable': True,
+    # # more edits options: https://dash.plotly.com/dash-core-components/graph
     'edits': {
         'annotationPosition': True,
         'annotationText': True,
-        'shapePosition': True
+       # 'shapePosition': True
     },
     "modeBarButtonsToAdd": [
         "drawline",
@@ -121,7 +123,6 @@ def on_new_annotation(relayout_data):
 
 )
 def save_data(relayout_data, inputText, submit_clicks):
-    global config
     if submit_clicks:
         if not len(fig.layout.annotations) == submit_clicks:
             fig.add_annotation(
@@ -137,12 +138,35 @@ def save_data(relayout_data, inputText, submit_clicks):
                 y=img_height / 2.5,
             )
             return fig
-
     if relayout_data:
-        print(relayout_data)
+        print("relay" +str(relayout_data))
+        print("test" + str(fig.layout.shapes))
+        print(type(fig.layout.shapes))
         # let dash do its thing if shapes are added
-        # if "shape" in str(relayout_data):
-        #     pass
+        if "shapes" in str(relayout_data):
+            print(relayout_data)
+            if "editable" in str(relayout_data):
+                print(str(relayout_data['shapes'][0]))
+                shape = relayout_data['shapes'][0]
+                fig.add_shape(shape)
+                pass
+            else:
+                shape_num_index = re.search(r"\d", str(relayout_data))
+                i = int(str(relayout_data)[shape_num_index.start()])
+                dictnames = list(relayout_data.keys())
+                new_dict = {}
+                counter = 0
+                for name in dictnames:
+                    dictnames[counter] = name[10:]
+                    counter = counter +1
+                for key, n_key in zip(relayout_data.keys(), dictnames):
+                    new_dict[n_key] = relayout_data[key]
+                print("new")
+                print(new_dict)
+                print(fig.layout.shapes)
+                fig.update_shapes(new_dict, i)
+                print(fig.layout.shapes)
+
         # if text is changed, relay data wont have new x cordinates
         if "annotations" in str(relayout_data):
             anno_num_index = re.search(r"\d", str(relayout_data))
@@ -169,4 +193,4 @@ class Annotation:
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=True, host="0.0.0.0", port=8050)
