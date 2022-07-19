@@ -60,6 +60,8 @@ fig.update_layout(
     margin={"l": 0, "r": 0, "t": 0, "b": 0},
 )
 
+
+
 # https://community.plotly.com/t/shapes-and-annotations-become-editable-after-using-config-key/18585
 config = {
     # 'editable': True,
@@ -67,7 +69,7 @@ config = {
     'edits': {
         'annotationPosition': True,
         'annotationText': True,
-       # 'shapePosition': True
+        # 'shapePosition': True
     },
     "modeBarButtonsToAdd": [
         "drawline",
@@ -101,28 +103,16 @@ app.layout = html.Div(
 )
 
 
-# modifiying drawn shapes
-@app.callback(
-    Output("annotations-data-pre", "children"),
-    Input("fig-image", "relayoutData"),
-    prevent_initial_call=True,
-)
-def on_new_annotation(relayout_data):
-    if "shapes" in relayout_data:
-        print("layout " + str(go.layout.annotation))
-        return json.dumps(relayout_data["shapes"], indent=2)
-    else:
-        return dash.no_update
-
-
 @app.callback(
     Output("fig-image", "figure"),
     Input('fig-image', 'relayoutData'),
     State('text-input', 'value'),
     Input('submit-val', 'n_clicks'),
-
 )
 def save_data(relayout_data, inputText, submit_clicks):
+    # adding new text
+    print("relay")
+    print(relayout_data)
     if submit_clicks:
         if not len(fig.layout.annotations) == submit_clicks:
             fig.add_annotation(
@@ -139,36 +129,32 @@ def save_data(relayout_data, inputText, submit_clicks):
             )
             return fig
     if relayout_data:
-        print("relay" +str(relayout_data))
-        print("test" + str(fig.layout.shapes))
-        print(type(fig.layout.shapes))
-        # let dash do its thing if shapes are added
-        if "shapes" in str(relayout_data):
-            print(relayout_data)
-            if "editable" in str(relayout_data):
-                print(str(relayout_data['shapes'][0]))
-                shape = relayout_data['shapes'][0]
-                fig.add_shape(shape)
-                pass
-            else:
-                shape_num_index = re.search(r"\d", str(relayout_data))
-                i = int(str(relayout_data)[shape_num_index.start()])
-                dictnames = list(relayout_data.keys())
-                new_dict = {}
-                counter = 0
-                for name in dictnames:
-                    dictnames[counter] = name[10:]
-                    counter = counter +1
-                for key, n_key in zip(relayout_data.keys(), dictnames):
-                    new_dict[n_key] = relayout_data[key]
-                print("new")
-                print(new_dict)
-                print(fig.layout.shapes)
-                fig.update_shapes(new_dict, i)
-                print(fig.layout.shapes)
+        # adding or removing shapes
+        if "'shapes':" in str(relayout_data):
+            counter = 0
+            fig.layout.shapes=()
+            for i in relayout_data['shapes']:
+                fig.add_shape(i)
+        # changing shapes
+        elif "shapes[" in str(relayout_data):
+            # using regex to find which shape was changed
+            shape_num_index = re.search(r"\d", str(relayout_data))
+            i = int(str(relayout_data)[shape_num_index.start()])
+            # changing dictionary keys so we can update the shape change easily
+            dictnames = list(relayout_data.keys())
+            new_dict = {}
+            counter = 0
+            for name in dictnames:
+                dictnames[counter] = name[10:]
+                counter = counter + 1
+            for key, n_key in zip(relayout_data.keys(), dictnames):
+                new_dict[n_key] = relayout_data[key]
+            fig.update_shapes(new_dict, i)
 
         # if text is changed, relay data wont have new x cordinates
-        if "annotations" in str(relayout_data):
+        elif "annotations" in str(relayout_data):
+            fig.update_annotations(captureevents=True)
+            #using regex to find which annotation we are using
             anno_num_index = re.search(r"\d", str(relayout_data))
             i = int(str(relayout_data)[anno_num_index.start()])
             if "text" in str(relayout_data):
