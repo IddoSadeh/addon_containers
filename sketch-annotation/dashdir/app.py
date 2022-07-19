@@ -60,8 +60,6 @@ fig.update_layout(
     margin={"l": 0, "r": 0, "t": 0, "b": 0},
 )
 
-
-
 # https://community.plotly.com/t/shapes-and-annotations-become-editable-after-using-config-key/18585
 config = {
     # 'editable': True,
@@ -94,27 +92,44 @@ app.layout = html.Div(
         html.Pre(id="annotations-data-pre"),
         dcc.Input(id="text-input", type='text'),
         html.Button('add text to image', id='submit-val', n_clicks=0),
-        dcc.Store(id="clicked", data="clickData", storage_type="memory"),
-        dcc.Store(
-            id='annotation_storage',
-            data='Editable Annotation',
-        )
+        html.Button('clear image', id="clean-reset", n_clicks=0),
+        dcc.ConfirmDialog(
+            id='confirm-reset',
+            message='Warning! All progress wil be lost! Are you sure you want to continue?',
+        ),
+
     ]
 )
 
 
 @app.callback(
+    Output('confirm-reset', 'displayed'),
+    Input('confirm-reset', 'submit_n_clicks'),
+    Input('clean-reset', 'n_clicks'))
+def display_confirm(submit, reset):
+    if reset and not submit:
+        return True
+    if reset and submit:
+        if reset>submit:
+            return True
+    return False
+
+
+@app.callback(
     Output("fig-image", "figure"),
+    Output('submit-val','n_clicks'),
+    Output('confirm-reset', 'submit_n_clicks'),
+    Output('clean-reset', 'n_clicks'),
     Input('fig-image', 'relayoutData'),
     State('text-input', 'value'),
     Input('submit-val', 'n_clicks'),
+    Input('confirm-reset', 'submit_n_clicks'),
+    Input('clean-reset', 'n_clicks'),
 )
-def save_data(relayout_data, inputText, submit_clicks):
+def save_data(relayout_data, inputText, submit_clicks, confirm,reset):
     # adding new text
-    print("relay")
-    print(relayout_data)
     if submit_clicks:
-        if not len(fig.layout.annotations) == submit_clicks:
+         if not len(fig.layout.annotations) == submit_clicks:
             fig.add_annotation(
                 text=inputText,
                 showarrow=False,
@@ -127,19 +142,27 @@ def save_data(relayout_data, inputText, submit_clicks):
                 x=img_width / 4,
                 y=img_height / 2.5,
             )
-            return fig
+            return fig, submit_clicks, confirm, reset
+
+    # relayout_data gives back user changes data
+    print("relay")
+    print(relayout_data)
     if relayout_data:
+
         # adding or removing shapes
         if "'shapes':" in str(relayout_data):
             counter = 0
-            fig.layout.shapes=()
+            fig.layout.shapes = ()
+            # all shapes on screen will be returned in relay data upon new shape creation.
             for i in relayout_data['shapes']:
                 fig.add_shape(i)
+
         # changing shapes
         elif "shapes[" in str(relayout_data):
             # using regex to find which shape was changed
             shape_num_index = re.search(r"\d", str(relayout_data))
             i = int(str(relayout_data)[shape_num_index.start()])
+
             # changing dictionary keys so we can update the shape change easily
             dictnames = list(relayout_data.keys())
             new_dict = {}
@@ -151,24 +174,32 @@ def save_data(relayout_data, inputText, submit_clicks):
                 new_dict[n_key] = relayout_data[key]
             fig.update_shapes(new_dict, i)
 
-        # if text is changed, relay data wont have new x cordinates
+        # if text is changed, "annotations" wil be part of the relayout data
         elif "annotations" in str(relayout_data):
             fig.update_annotations(captureevents=True)
-            #using regex to find which annotation we are using
+            # using regex to find which annotation was changed
             anno_num_index = re.search(r"\d", str(relayout_data))
             i = int(str(relayout_data)[anno_num_index.start()])
+
+            # if text content is changed "text" will be in relay data
             if "text" in str(relayout_data):
                 fig.update_annotations(Annotation(fig.layout.annotations[i]['x'], fig.layout.annotations[i]['y'],
                                                   relayout_data[f'annotations[{i}].text']).__dict__, i)
-            # if text is just moved relay data wont have text data
+
+            # if text is just moved relay data wont have "text" in data
             else:
                 fig.update_annotations(
                     Annotation(relayout_data[f'annotations[{i}].x'], relayout_data[f'annotations[{i}].y'],
                                fig.layout.annotations[i]['text']).__dict__, i)
-        elif "shapes" in str(relayout_data):
-            pass
 
-    return dash.no_update
+    # resetting image
+    if confirm:
+        fig.layout.shapes = ()
+        fig.layout.annotations = ()
+        return fig, 0, 0, 0
+
+    return dash.no_update, submit_clicks, confirm, reset
+
 
 
 class Annotation:
