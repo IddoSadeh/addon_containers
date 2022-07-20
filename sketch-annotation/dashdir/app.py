@@ -61,7 +61,10 @@ fig.update_layout(
     margin={"l": 0, "r": 0, "t": 0, "b": 0},
 )
 
+# config options
 # https://community.plotly.com/t/shapes-and-annotations-become-editable-after-using-config-key/18585
+# start here for basic shape annotations:
+# https://dash.plotly.com/annotations
 config = {
     # 'editable': True,
     # # more edits options: https://dash.plotly.com/dash-core-components/graph
@@ -87,6 +90,9 @@ config = {
 app = dash.Dash(__name__)
 app.layout = html.Div(
     [
+        # store not in use for now
+        # for documentation
+        # https://dash.plotly.com/dash-core-components/store
         dcc.Store(id='relay', storage_type='session'),
         dcc.ConfirmDialog(
             id='confirm-reset',
@@ -104,6 +110,8 @@ app.layout = html.Div(
             }, ),
 
         html.Div([
+            # for input documentation
+            # https://dash.plotly.com/dash-core-components/input
             html.Pre("Enter text"),
             dcc.Input(id="text-input", type='text'),
             html.Pre("Choose text font size"),
@@ -113,6 +121,8 @@ app.layout = html.Div(
             html.Pre("Clear Image"),
             html.Button('clear image', id="clean-reset", n_clicks=0),
             html.Pre('Color Picker'),
+            # for colorpicker documentation
+            # https://dash.plotly.com/dash-daq
             daq.ColorPicker(
             id="annotation-color-picker", label="Color Picker", value=dict(rgb=dict(r=0, g=0, b=0, a=0))
             )
@@ -149,6 +159,8 @@ def display_confirm(submit, reset):
     Output('submit-val', 'n_clicks'),
     Output('confirm-reset', 'submit_n_clicks'),
     Output('clean-reset', 'n_clicks'),
+    # for explanation on relayout data:
+    # https://dash.plotly.com/interactive-graphing
     Input('fig-image', 'relayoutData'),
     State('text-input', 'value'),
     Input('submit-val', 'n_clicks'),
@@ -172,6 +184,8 @@ def save_data(relayout_data, inputText, submit_clicks, confirm, reset, color_val
         update_annotations(relayout_data, color_value)
 
     print(relayout_data)
+    #this adds reactive color changes if the color picker was what triggered the callback
+    #https://dash.plotly.com/determining-which-callback-input-changed
     if ctx.triggered_id == "annotation-color-picker":
         print('herrr')
         print(relayout_data)
@@ -216,6 +230,8 @@ def update_annotations(relayout_data, color_value='black', size=28):
     b = color_value['rgb']['b']
     a = color_value['rgb']['a']
 
+# for shape layouts
+# https://plotly.com/python/reference/layout/shapes/#layout-shapes-items-shape-type
     if "'shapes':" in str(relayout_data):
         print(relayout_data)
         relayout_data['shapes'][-1]["fillcolor"] = f'rgba({r},{g},{b},{a})'
@@ -240,7 +256,8 @@ def update_annotations(relayout_data, color_value='black', size=28):
             new_dict[n_key] = relayout_data[key]
         new_dict["fillcolor"] = f'rgba({r},{g},{b},{a})'
         fig.update_shapes(new_dict, i)
-
+# for text layout:
+# https://plotly.com/python/reference/layout/annotations/
     # if text is changed, "annotations" wil be part of the relayout data
     elif "annotations" in str(relayout_data):
         fig.update_annotations(captureevents=True)
