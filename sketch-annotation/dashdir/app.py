@@ -87,23 +87,47 @@ config = {
 app = dash.Dash(__name__)
 app.layout = html.Div(
     [
-        html.H3("Drag and draw annotations - use the modebar to pick a different drawing tool"),
-        dcc.Graph(id="fig-image", figure=fig, config=config),
         dcc.Store(id='relay', storage_type='session'),
-        html.Pre(id="annotations-data-pre"),
-        dcc.Input(id="text-input", type='text'),
-        html.Button('add text to image', id='submit-val', n_clicks=0),
-        html.Button('clear image', id="clean-reset", n_clicks=0),
         dcc.ConfirmDialog(
             id='confirm-reset',
             message='Warning! All progress wil be lost! Are you sure you want to continue?',
         ),
-        html.Pre('Color Picker, a represent opacity on a scale of 0 (opaque) to 1 (fully filled)'),
-        daq.ColorPicker(
+
+        html.H3("Drag and draw annotations - use the modebar to pick a different drawing tool"),
+
+        html.Div(
+            [dcc.Graph(id="fig-image", figure=fig, config=config)],
+            style={
+                "display": "inline-block",
+                "position": "absolute",
+                "left": 0,
+            }, ),
+
+        html.Div([
+            html.Pre("Enter text"),
+            dcc.Input(id="text-input", type='text'),
+            html.Pre("Choose text font size"),
+            dcc.Input(id='font-size', type="number", min=10, max=30, step=1,value = 28),
+            html.Pre(),
+            html.Button('add text to image', id='submit-val', n_clicks=0),
+            html.Pre("Clear Image"),
+            html.Button('clear image', id="clean-reset", n_clicks=0),
+            html.Pre('Color Picker'),
+            daq.ColorPicker(
             id="annotation-color-picker", label="Color Picker", value=dict(rgb=dict(r=0, g=0, b=0, a=0))
+            )
+
+
+        ],
+            style={
+                "display": "inline-block",
+                "position": "absolute",
+                "right": 20,
+            },
         ),
 
-    ]
+    ],
+
 )
 
 
@@ -125,21 +149,23 @@ def display_confirm(submit, reset):
     Output('submit-val', 'n_clicks'),
     Output('confirm-reset', 'submit_n_clicks'),
     Output('clean-reset', 'n_clicks'),
-    State('fig-image', 'relayoutData'),
+    Input('fig-image', 'relayoutData'),
     State('text-input', 'value'),
     Input('submit-val', 'n_clicks'),
     Input('confirm-reset', 'submit_n_clicks'),
     Input('clean-reset', 'n_clicks'),
     Input("annotation-color-picker", "value"),
+    State("font-size", "value"),
 )
-def save_data(relayout_data, inputText, submit_clicks, confirm, reset, color_value):
+def save_data(relayout_data, inputText, submit_clicks, confirm, reset, color_value, font_size):
     print("new")
     # adding new text
     if submit_clicks:
         if not len(fig.layout.annotations) == submit_clicks:
-            return add_text(inputText, color_value), submit_clicks, confirm, reset
+            return add_text(inputText, color_value, font_size), submit_clicks, confirm, reset
 
     # relayout_data gives back user changes data, if it exists, update changes to figure
+    print(relayout_data)
     if "dragmode" in str(relayout_data):
         fig.update_layout(relayout_data)
     if relayout_data:
@@ -162,7 +188,7 @@ def save_data(relayout_data, inputText, submit_clicks, confirm, reset, color_val
 
 # precondition: inputText is not none and the figure has more annotations on it than those saved in figure data
 # postcondition: add inputText to figure data
-def add_text(inputText, color_value):
+def add_text(inputText, color_value, font_size=28):
     r = color_value['rgb']['r']
     g = color_value['rgb']['g']
     b = color_value['rgb']['b']
@@ -172,7 +198,7 @@ def add_text(inputText, color_value):
         showarrow=False,
         font=dict(
             family="Courier New, monospace",
-            size=28,
+            size=font_size,
             color=f'rgba({r},{g},{b},{1})',
 
         ),
@@ -184,13 +210,14 @@ def add_text(inputText, color_value):
 
 # preconditions: relayout_data is not none
 # function updates annotations for figure
-def update_annotations(relayout_data, color_value):
+def update_annotations(relayout_data, color_value='black', size=28):
     r = color_value['rgb']['r']
     g = color_value['rgb']['g']
     b = color_value['rgb']['b']
     a = color_value['rgb']['a']
 
     if "'shapes':" in str(relayout_data):
+        print(relayout_data)
         relayout_data['shapes'][-1]["fillcolor"] = f'rgba({r},{g},{b},{a})'
         fig.layout.shapes = ()
         # all shapes on screen will be returned in relay data upon new shape creation.
@@ -224,14 +251,15 @@ def update_annotations(relayout_data, color_value):
         # if text content is changed "text" will be in relay data
         if "text" in str(relayout_data):
             fig.update_annotations(Annotation(fig.layout.annotations[i]['x'], fig.layout.annotations[i]['y'],
-                                              relayout_data[f'annotations[{i}].text'], f'rgba({r},{g},{b},1)').__dict__,
+                                              relayout_data[f'annotations[{i}].text'], f'rgba({r},{g},{b},1)',
+                                              size).__dict__,
                                    i)
 
         # if text is just moved relay data wont have "text" in data
         else:
             fig.update_annotations(
                 Annotation(relayout_data[f'annotations[{i}].x'], relayout_data[f'annotations[{i}].y'],
-                           fig.layout.annotations[i]['text'], f'rgba({r},{g},{b},1)').__dict__, i)
+                           fig.layout.annotations[i]['text'], f'rgba({r},{g},{b},1)', size).__dict__, i)
 
 
 # precondition: confirm is not none
@@ -243,13 +271,13 @@ def clean_figure(confirm):
 
 
 class Annotation:
-    def __init__(self, x, y, text, color):
+    def __init__(self, x, y, text, color, size):
         self.x = x
         self.y = y
         self.text = text
         self.font = dict(
             family="Courier New, monospace",
-            size=28,
+            size=size,
             color=color,
 
         )
