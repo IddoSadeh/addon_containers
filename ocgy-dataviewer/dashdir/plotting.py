@@ -18,9 +18,11 @@ GIPY0405 = pd.concat(
 )  # merging the csv files for GIPY04 and GIPY05
 
 all_data = pd.concat([GP02, GA03, GIPY04, GIPY05], keys=['GP02', 'GA03', 'GIPY04', 'GIPY05'])
-all_data['Cruise'] = all_data.index.values
-for i in range(823):
-    all_data['Cruise'][i] = all_data['Cruise'][i][0]
+cruises = all_data.index.values
+cruises = np.array([np.array(list(x)) for x in cruises])
+cruises = cruises[:,0]
+all_data['Cruise'] = cruises
+
 
 
 # SUBPLOTS PLOTTING
@@ -217,12 +219,12 @@ def update_profiles(hov_station, click_stations, fig, y_range):
             hov_station["lat"], hov_station["lon"], "Ratio"
         )
 
-        fig.data[0].update(x=hov_xvals_temp, y=hov_yvals_temp, marker_color = hov_station["colour"])
-        fig.data[1].update(x=hov_xvals_sal, y=hov_yvals_sal, marker_color = hov_station["colour"])
-        fig.data[2].update(x=hov_xvals_dens, y=hov_yvals_dens, marker_color = hov_station["colour"])
-        fig.data[3].update(x=hov_xvals_nit, y=hov_yvals_nit, marker_color = hov_station["colour"])
-        fig.data[4].update(x=hov_xvals_iron, y=hov_yvals_iron, marker_color = hov_station["colour"])
-        fig.data[5].update(x=hov_xvals_ratio, y=hov_yvals_ratio, marker_color = hov_station["colour"])
+        fig.data[0].update(x=hov_xvals_temp, y=hov_yvals_temp, marker_color=hov_station["colour"])
+        fig.data[1].update(x=hov_xvals_sal, y=hov_yvals_sal, marker_color=hov_station["colour"])
+        fig.data[2].update(x=hov_xvals_dens, y=hov_yvals_dens, marker_color=hov_station["colour"])
+        fig.data[3].update(x=hov_xvals_nit, y=hov_yvals_nit, marker_color=hov_station["colour"])
+        fig.data[4].update(x=hov_xvals_iron, y=hov_yvals_iron, marker_color=hov_station["colour"])
+        fig.data[5].update(x=hov_xvals_ratio, y=hov_yvals_ratio, marker_color=hov_station["colour"])
 
     # loop through each of the clicked stations and plot the traces
     if len(click_stations) != 0:
@@ -260,7 +262,9 @@ def update_profiles(hov_station, click_stations, fig, y_range):
                     y=click_yvals_temp,
                     marker_color=click_stations[i]["colour"],
                     marker_symbol=click_stations[i]["symbol"],
-                    marker_size = 8,
+                    marker_line_color="black",
+                    marker_line_width=0.3,
+                    marker_size=6,
 
                 )
                 fig.data[7 + i * 6].update(
@@ -268,35 +272,45 @@ def update_profiles(hov_station, click_stations, fig, y_range):
                     y=click_yvals_sal,
                     marker_color=click_stations[i]["colour"],
                     marker_symbol=click_stations[i]["symbol"],
-                    marker_size=8,
+                    marker_line_color="black",
+                    marker_line_width=0.3,
+                    marker_size=6,
                 )
                 fig.data[8 + i * 6].update(
                     x=click_xvals_dens,
                     y=click_yvals_dens,
                     marker_color=click_stations[i]["colour"],
                     marker_symbol=click_stations[i]["symbol"],
-                    marker_size=8,
+                    marker_line_color="black",
+                    marker_line_width=0.3,
+                    marker_size=6,
                 )
                 fig.data[9 + i * 6].update(
                     x=click_xvals_nit,
                     y=click_yvals_nit,
                     marker_color=click_stations[i]["colour"],
                     marker_symbol=click_stations[i]["symbol"],
-                    marker_size=8,
+                    marker_line_color="black",
+                    marker_line_width=0.3,
+                    marker_size=6,
                 )
                 fig.data[10 + i * 6].update(
                     x=click_xvals_iron,
                     y=click_yvals_iron,
                     marker_color=click_stations[i]["colour"],
                     marker_symbol=click_stations[i]["symbol"],
-                    marker_size=8,
+                    marker_line_color="black",
+                    marker_line_width=0.3,
+                    marker_size=6,
                 )
                 fig.data[11 + i * 6].update(
                     x=click_xvals_ratio,
                     y=click_yvals_ratio,
                     marker_color=click_stations[i]["colour"],
                     marker_symbol=click_stations[i]["symbol"],
-                    marker_size=8,
+                    marker_line_color="black",
+                    marker_line_width=0.3,
+                    marker_size=6,
                 )
 
     # display cruise info
